@@ -2,6 +2,8 @@
 node_modules
 /dist
 
+# visualization outputs
+outputs
 
 # local env files
 .env.local

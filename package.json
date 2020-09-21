@@ -14,8 +14,15 @@
   "main": "background.js",
   "dependencies": {
     "core-js": "^3.6.5",
+    "electron-store": "^6.0.0",
+    "html2canvas": "^1.0.0-rc.7",
+    "mark.js": "^8.11.1",
+    "pcre-to-regexp": "^1.1.0",
+    "regex-colorize": "^0.0.3",
+    "regulex-cjs": "^0.0.7",
     "tailwindcss": "^1.8.10",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vue-tippy": "^4.7.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -26,6 +33,7 @@
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "imports-loader": "^1.1.0",
     "vue-cli-plugin-electron-builder": "~2.0.0-rc.4",
     "vue-template-compiler": "^2.6.11"
   },

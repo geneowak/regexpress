@@ -1,8 +1,9 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, Menu, dialog, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+import { readFileSync, writeFileSync } from 'fs'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -14,10 +15,60 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
+ipcMain.on('visualizationAvailable', (event, args) => {
+  
+  const filename = dialog.showSaveDialogSync({
+    title: 'Save RegExpress Visualization',
+    defaultPath: 'file_name.png', // default file name
+    buttonLabel: 'Save Visualization',
+    filters: [
+      {
+        title: 'PNG',
+        extensions: ['png']
+      }
+    ]
+  })
+  // if the user canceled then the filename will be undifined
+  if (typeof filename === 'undefined') {
+    return;
+  }
+
+  const pngData = args.png.replace(/^data:image\/png;base64,/, '')
+
+  writeFileSync(filename, pngData, 'base64')
+})
+
+function openMatchesFile() {
+  const selectedMatchFiles = dialog.showOpenDialogSync({
+    title: 'Select your match file',
+    filters: [
+      {
+        name: 'Text Files',
+        extensions: ['txt', 'md'] 
+      }
+    ],
+    properties: [
+      'openFile' 
+    ]
+  });
+
+  if (typeof selectedMatchFiles === 'undefined') {
+    return
+  }
+
+  const selectedMatchFile = selectedMatchFiles.pop()
+  
+  const matchContent = readFileSync(selectedMatchFile).toString()
+   
+  win.webContents.send('matchFileSelected', {
+    contents: matchContent,
+  });
+}
+
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 600,
+    width: 800,
     height: 600,
     minHeight: 400,
     minWidth: 400,
@@ -41,6 +92,35 @@ function createWindow() {
   win.on('closed', () => {
     win = null
   })
+}
+
+function saveVisualization() {
+  win.webContents.send('saveVisualization');
+}
+function createMenu() {
+  const menuTemplate = [
+    { role: 'appMenu' },
+    {
+      label: 'File', 
+      submenu: [
+        {
+          label: 'Open',
+          accelerator: "CommandOrControl+O",
+          click: openMatchesFile
+        },
+        {
+          label: 'Save',
+          accelerator: "CommandOrControl+S",
+          click: saveVisualization
+        }
+      ]
+    },
+    {role: 'editMenu'}
+  ]
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
+
+  Menu.setApplicationMenu(menu);
 }
 
 // Quit when all windows are closed.
@@ -73,6 +153,8 @@ app.on('ready', async () => {
     }
   }
   createWindow()
+  
+  createMenu()
 })
 
 // Exit cleanly on request from parent process in development mode.
